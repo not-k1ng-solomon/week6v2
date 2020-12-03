@@ -1,16 +1,16 @@
 export default (express, bodyParser, createReadStream, crypto, http, mongo) => {
     
-    const app = express();
-    const author = 'davlet';
+    const app = express()
+    const author = 'davlet'
 
-    const parseUrlEncodedBody = bodyParser.urlencoded({ extended: false });
+    const parseUrlEncodedBody = bodyParser.urlencoded({ extended: false })
 
     app
     .use(parseUrlEncodedBody)
     .use((req, res, next) => {
-        res.setHeader('Content-Type', 'text/plain');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+        res.setHeader('Content-Type', 'text/plain')
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
 
         next()
     })
@@ -18,7 +18,7 @@ export default (express, bodyParser, createReadStream, crypto, http, mongo) => {
         res.send(author)
     })
     .get('/code/', (req, res) => {
-        let filePath = import.meta.url.replace(/^file:\/+/, '');
+        let filePath = import.meta.url.replace(/^file:\/+/, '')
     
         if (! filePath.includes(':')) {
             filePath = `/${filePath}`
@@ -27,21 +27,21 @@ export default (express, bodyParser, createReadStream, crypto, http, mongo) => {
         createReadStream(filePath).pipe(res)
     })
     .get('/sha1/:input', ({ params }, res) => {
-        const { input } = params;
+        const { input } = params
 
-        const hash = crypto.createHash('sha1').update(input).digest('hex');
+        const hash = crypto.createHash('sha1').update(input).digest('hex')
 
         res.send(hash);
     })
     .get('/req/', ({ query }, res) => {
-        const { addr } = query;
+        const { addr } = query
 
         http.get(addr, httpRes => {
-            httpRes.setEncoding('utf8');
+            httpRes.setEncoding('utf8')
 
-            let data = '';
+            let data = ''
 
-            httpRes.on('data', chunk => { data += chunk });
+            httpRes.on('data', chunk => { data += chunk })
 
             httpRes.on('end', () => {
                 res.send(data)
@@ -49,14 +49,14 @@ export default (express, bodyParser, createReadStream, crypto, http, mongo) => {
         })
     })    
     .post('/req/', ({ body }, res) => {
-        const { addr } = body;
+        const { addr } = body
 
         http.get(addr, httpRes => {
-            httpRes.setEncoding('utf8');
+            httpRes.setEncoding('utf8')
 
-            let data = '';
+            let data = ''
 
-            httpRes.on('data', chunk => { data += chunk });
+            httpRes.on('data', chunk => { data += chunk })
 
             httpRes.on('end', () => {
                 res.send(data)
@@ -64,21 +64,21 @@ export default (express, bodyParser, createReadStream, crypto, http, mongo) => {
         })
     })
     .post('/insert/', async ({ body }, res) => {
-        const { login, password, URL  } = body;
+        const { login, password, URL  } = body
 
         const UserSchema = mongo.Schema({
             login: String,
             password: String,
-        });
+        })
 
-        const User = mongo.model('User', UserSchema);
+        const User = mongo.model('User', UserSchema)
 
-        const connection = await mongo.connect(URL, { useNewUrlParser: true, useUnifiedTopology: true });
+        const connection = await mongo.connect(URL, { useNewUrlParser: true, useUnifiedTopology: true })
 
-        const user = new User({ login, password });
+        const user = new User({ login, password })
         
         user.save((e) => {
-            connection.disconnect();
+            connection.disconnect()
 
             if (e) {
                 return res.send(e.message)
@@ -89,7 +89,7 @@ export default (express, bodyParser, createReadStream, crypto, http, mongo) => {
     })
     .all('*', (req, res) => {
         res.send(author)
-    });
+    })
 
     return app
 }
